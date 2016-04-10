@@ -7,6 +7,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,8 +20,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = MainActivity.class.getName();
 
     private SpeechToText mStt = null;
 
@@ -77,16 +81,22 @@ public class MainActivity extends AppCompatActivity {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    speechToText(data.getData());
+                    try {
+                        speechToText(data.getData());
+                    }catch(IOException ex) {
+                        Log.d(TAG, ex.getMessage(), ex);
+                    }
                 }
             });
         }
 
     }
 
-    private void speechToText(final Uri uri){
-        String username = "username";
-        String password = "password";
+    private void speechToText(final Uri uri) throws IOException{
+        Properties properties = new Properties();
+        properties.load(getAssets().open("account.txt", MODE_PRIVATE));
+        String username = properties.getProperty("username");
+        String password = properties.getProperty("password");
 
         SpeechToText stt = new SpeechToText();
         stt.setUsernameAndPassword(username, password);
