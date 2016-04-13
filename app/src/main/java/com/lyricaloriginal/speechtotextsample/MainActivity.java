@@ -76,7 +76,6 @@ public class MainActivity extends AppCompatActivity implements SpeechToTextFragm
                 }
             });
         }
-
     }
 
     private void speechToText(final Uri uri) throws IOException{
@@ -107,9 +106,4 @@ public class MainActivity extends AppCompatActivity implements SpeechToTextFragm
         mMsg.append(sb.toString());
         Log.d(TAG, speechResults.toString());
     }
-
-//    speechResults.getResults().get(0).getAlternatives().get(0).getTranscript();
-//    mMsg.append(speechResults.toString());
-//    mMsg.append("\n");
-
 }
