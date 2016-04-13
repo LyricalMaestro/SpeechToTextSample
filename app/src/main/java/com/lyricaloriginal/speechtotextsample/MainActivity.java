@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.ibm.watson.developer_cloud.speech_to_text.v1.RecognizeOptions;
 import com.ibm.watson.developer_cloud.speech_to_text.v1.SpeechToText;
 import com.ibm.watson.developer_cloud.speech_to_text.v1.model.SpeechResults;
+import com.ibm.watson.developer_cloud.speech_to_text.v1.model.Transcript;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,21 +23,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SpeechToTextFragment.Listener{
 
     private static final String TAG = MainActivity.class.getName();
 
-    private SpeechToText mStt = null;
-
-    private HandlerThread mHt = null;
-    private Handler mhandler = null;
-
+    private SpeechToTextFragment mSttFragment = null;
     private TextView mMsg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if(savedInstanceState == null){
+            mSttFragment = new SpeechToTextFragment();
+            getSupportFragmentManager().
+                    beginTransaction().
+                    add(mSttFragment, SpeechToTextFragment.class.getName()).
+                    commit();
+        }else{
+            mSttFragment = (SpeechToTextFragment) getSupportFragmentManager().
+                    findFragmentByTag(SpeechToTextFragment.class.getName());
+        }
 
         mMsg = (TextView)findViewById(android.R.id.text1);
 
@@ -49,27 +57,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, 0);
             }
         });
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mHt = new HandlerThread("ws");
-        mHt.start();
-        mhandler = new Handler(mHt.getLooper());
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mHt != null) {
-            if (mStt != null) {
-                mStt = null;
-            }
-            mHt.quit();
-            mhandler = null;
-            mHt = null;
-        }
     }
 
     @Override
@@ -97,58 +84,32 @@ public class MainActivity extends AppCompatActivity {
         properties.load(getAssets().open("account.txt", MODE_PRIVATE));
         String username = properties.getProperty("username");
         String password = properties.getProperty("password");
-
-        SpeechToText stt = new SpeechToText();
-        stt.setUsernameAndPassword(username, password);
-        stt.setEndPoint("https://stream.watsonplatform.net/speech-to-text/api");
-
-        final RecognizeOptions options = new RecognizeOptions().contentType("audio/wav")
-                .continuous(true).interimResults(true).model("ja-JP_BroadbandModel");
-        mStt = stt;
-        mhandler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    File target = downloadWavFile(uri);
-                    final SpeechResults speechResults = mStt.recognize(target, options);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            speechResults.getResults().get(0).getAlternatives().get(0).getTranscript();
-                            mMsg.append(speechResults.toString());
-                            mMsg.append("\n");
-                        }
-                    });
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
+        mSttFragment.speechToText(username, password, uri);
 
     }
 
-    private File downloadWavFile(Uri uri) throws IOException {
-        File f = new File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), "sample.wav");
-        if(!f.getParentFile().exists()){
-            f.getParentFile().mkdirs();
+    @Override
+    public void onStartTextToSpeech(String tag) {
+        mMsg.setText("指定ファイル解析中・・・\n");
+    }
+
+    @Override
+    public void onReceiveResult(String tag, SpeechResults speechResults) {
+        if(speechResults == null){
+            return;
         }
 
-        InputStream is = null;
-        FileOutputStream fos = null;
-        try {
-            is = getContentResolver().openInputStream(uri);
-            fos = new FileOutputStream(f);
-            byte[] buf = new byte[256];
-            int len = 0;
-            while ((len = is.read(buf, 0, buf.length)) != -1) {
-                fos.write(buf, 0, len);
-            }
-        } finally {
-            if (is != null)
-                is.close();
-            if (fos != null)
-                fos.close();
+        StringBuilder sb = new StringBuilder();
+        for(Transcript transcript : speechResults.getResults()){
+            String word = transcript.getAlternatives().get(0).getTranscript();
+            sb.append(word);
         }
-        return f;
+        mMsg.append(sb.toString());
+        Log.d(TAG, speechResults.toString());
     }
+
+//    speechResults.getResults().get(0).getAlternatives().get(0).getTranscript();
+//    mMsg.append(speechResults.toString());
+//    mMsg.append("\n");
+
 }
