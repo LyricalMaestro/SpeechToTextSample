@@ -10,11 +10,22 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.lyricaloriginal.speechtotextsample.MainActivity">
 
-    <Button
-        android:id="@android:id/button1"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="音声ファイル選択" />
+        android:orientation="horizontal">
+        <Button
+            android:id="@android:id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="音声ファイル選択" />
+
+        <Button
+            android:id="@+id/from_audio_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="マイクから録音" />
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
