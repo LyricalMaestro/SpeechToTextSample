@@ -104,7 +104,14 @@ public class SpeechToTextFragment extends Fragment {
     }
 
     private void speechToTextInBackground(final Uri uri, RecognizeOptions options) throws IOException{
-        File target = downloadWavFile(uri);
+        File targetFile = null;
+        if(uri.getScheme().startsWith("content")){
+            targetFile = downloadWavFile(uri);
+        }else if(uri.getScheme().startsWith("file")){
+            targetFile = new File(uri.getPath());
+        }else{
+            throw new IllegalArgumentException("URIのスキーマが不正です。");
+        }
 
         mUiHandler.post(new Runnable() {
             @Override
@@ -114,7 +121,7 @@ public class SpeechToTextFragment extends Fragment {
                 }
             }
         });
-        final SpeechResults speechResults = mStt.recognize(target, options);
+        final SpeechResults speechResults = mStt.recognize(targetFile, options);
         mUiHandler.post(new Runnable() {
             @Override
             public void run() {

@@ -78,7 +78,7 @@ public class RecordingActivity extends AppCompatActivity implements RecordingFra
         if(output != null){
             Intent intent = new Intent();
             intent.setData(Uri.fromFile(output));
-            setResult(RESULT_OK);
+            setResult(RESULT_OK, intent);
             finish();
         }
     }
