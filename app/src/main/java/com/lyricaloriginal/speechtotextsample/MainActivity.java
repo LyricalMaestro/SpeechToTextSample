@@ -57,6 +57,13 @@ public class MainActivity extends AppCompatActivity implements SpeechToTextFragm
                 startActivityForResult(intent, 0);
             }
         });
+        findViewById(R.id.from_audio_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, RecordingActivity.class);
+                startActivityForResult(intent, 0);
+            }
+        });
     }
 
     @Override
