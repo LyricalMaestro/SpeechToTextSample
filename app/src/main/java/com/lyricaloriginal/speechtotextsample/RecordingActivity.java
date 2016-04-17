@@ -4,11 +4,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 
 public class RecordingActivity extends AppCompatActivity implements RecordingFragment.Listener{
 
@@ -25,10 +27,14 @@ public class RecordingActivity extends AppCompatActivity implements RecordingFra
         mRecordingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mFragment.isRecording()){
-                    mFragment.stop(true);
-                }else{
-                    mFragment.start();
+                try{
+                    if(mFragment.isRecording()){
+                        mFragment.stop(true);
+                    }else{
+                        mFragment.start();
+                    }
+                }catch(IOException ex){
+                    Log.e("tag", ex.getMessage(), ex);
                 }
             }
         });
@@ -54,13 +60,16 @@ public class RecordingActivity extends AppCompatActivity implements RecordingFra
 
     @Override
     public void onStartRecord(String tag) {
-        mRecordingTimeTextView.setText("0:00");
+        mRecordingTimeTextView.setText("00:00");
         mRecordingBtn.setText("録音をやめる");
     }
 
     @Override
-    public void onNotifyRecordingTime(String tag, int time) {
-        mRecordingTimeTextView.setText(String.valueOf(time));
+    public void onNotifyRecordingTime(String tag, int seconds) {
+        int minute = seconds / 60;
+        int secInMinute = seconds % 60;
+        String text = String.format("%1$02d:%2$02d", minute, secInMinute);
+        mRecordingTimeTextView.setText(text);
     }
 
     @Override
